@@ -1,47 +1,45 @@
-CREATE TABLE "users" (
-                         "id" bigserial PRIMARY KEY,
-                         "email" varchar UNIQUE NOT NULL,
-                         "username" varchar UNIQUE NOT NULL,
-                         "hashed_password" varchar NOT NULL,
-                         "created_at" timestamptz NOT NULL DEFAULT now()
-);
-
 CREATE TABLE "wallets" (
                            "id" bigserial PRIMARY KEY,
-                           "user_id" bigint UNIQUE NOT NULL REFERENCES users(id),
-                           "balance" bigint NOT NULL CHECK (balance >= 0),
-                           "created_at" timestamptz NOT NULL DEFAULT now()
-);
-
-CREATE TABLE "payments" (
-                            "id" bigserial PRIMARY KEY,
-                            "from_user_id" bigint NOT NULL REFERENCES users(id),
-                            "to_user_id" bigint NOT NULL REFERENCES users(id),
-                            "amount" bigint NOT NULL CHECK (amount >= 0),
-                            "status" varchar NOT NULL,
-                            "created_at" timestamptz NOT NULL DEFAULT now(),
-                            CHECK (from_user_id <> to_user_id)
+                           "owner" varchar NOT NULL,
+                           "balance" bigint NOT NULL,
+                           "currency" varchar NOT NULL,
+                           "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
 CREATE TABLE "entries" (
                            "id" bigserial PRIMARY KEY,
-                           "wallet_id" bigint NOT NULL REFERENCES wallets(id),
-                           "payment_id" bigint NOT NULL REFERENCES payments(id),
+                           "wallet_id" bigint NOT NULL,
                            "amount" bigint NOT NULL,
-                           "created_at" timestamptz NOT NULL DEFAULT now()
+                           "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
-CREATE INDEX idx_users_email ON users(email);
+CREATE TABLE "payments" (
+                            "id" bigserial PRIMARY KEY,
+                            "from_wallet_id" bigint NOT NULL,
+                            "to_wallet_id" bigint NOT NULL,
+                            "amount" bigint NOT NULL,
+                            "status" varchar NOT NULL,
+                            "created_at" timestamptz NOT NULL DEFAULT (now())
+);
 
-CREATE INDEX idx_wallets_user_id ON wallets(user_id);
+CREATE INDEX ON "wallets" ("owner");
 
-CREATE INDEX idx_payments_from_user_id ON payments(from_user_id);
-CREATE INDEX idx_payments_to_user_id ON payments(to_user_id);
+CREATE INDEX ON "entries" ("wallet_id");
 
-CREATE INDEX idx_entries_wallet_id ON entries(wallet_id);
-CREATE INDEX idx_entries_payment_id ON entries(payment_id);
+CREATE INDEX ON "payments" ("from_wallet_id");
 
-COMMENT ON COLUMN "wallets"."balance" IS 'must be >= 0';
-COMMENT ON COLUMN "payments"."amount" IS 'must be > 0';
-COMMENT ON COLUMN "payments"."status" IS 'pending | completed | failed';
+CREATE INDEX ON "payments" ("to_wallet_id");
+
+CREATE INDEX ON "payments" ("from_wallet_id", "to_wallet_id");
+
 COMMENT ON COLUMN "entries"."amount" IS '+credit / -debit';
+
+COMMENT ON COLUMN "payments"."amount" IS 'must be > 0';
+
+COMMENT ON COLUMN "payments"."status" IS 'pending | completed | failed';
+
+ALTER TABLE "entries" ADD FOREIGN KEY ("wallet_id") REFERENCES "wallets" ("id");
+
+ALTER TABLE "payments" ADD FOREIGN KEY ("from_wallet_id") REFERENCES "wallets" ("id");
+
+ALTER TABLE "payments" ADD FOREIGN KEY ("to_wallet_id") REFERENCES "wallets" ("id");

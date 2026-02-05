@@ -9,20 +9,21 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomPayment(t *testing.T, fromUserID, toUserID int64) Payment {
+func createRandomPayment(t *testing.T, wallet1, wallet2 Wallet) Payment {
 	t.Helper()
 
 	arg := CreatePaymentParams{
-		FromUserID: fromUserID,
-		ToUserID:   toUserID,
-		Amount:     util.RandomMoney(),
+		FromWalletID: wallet1.ID,
+		ToWalletID:   wallet2.ID,
+		Amount:       util.RandomMoney(),
+		Status:       util.RandomStatus(),
 	}
 	payment, err := testQueries.CreatePayment(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, payment)
 
-	require.Equal(t, arg.FromUserID, payment.FromUserID)
-	require.Equal(t, arg.ToUserID, payment.ToUserID)
+	require.Equal(t, arg.FromWalletID, payment.FromWalletID)
+	require.Equal(t, arg.ToWalletID, payment.ToWalletID)
 	require.Equal(t, arg.Amount, payment.Amount)
 
 	require.NotZero(t, payment.ID)
@@ -32,66 +33,58 @@ func createRandomPayment(t *testing.T, fromUserID, toUserID int64) Payment {
 }
 
 func TestCreatePayment(t *testing.T) {
-	fromUser := createRandomUser(t)
-	toUser := createRandomUser(t)
-
-	payment := createRandomPayment(t, fromUser.ID, toUser.ID)
-
-	require.NotEmpty(t, payment)
-	require.Equal(t, fromUser.ID, payment.FromUserID)
-	require.Equal(t, toUser.ID, payment.ToUserID)
+	wallet1 := createRandomWallet(t)
+	wallet2 := createRandomWallet(t)
+	createRandomPayment(t, wallet1, wallet2)
 }
 
 func TestGetPayment(t *testing.T) {
-	fromUser := createRandomUser(t)
-	toUser := createRandomUser(t)
+	wallet1 := createRandomWallet(t)
+	wallet2 := createRandomWallet(t)
+	payment1 := createRandomPayment(t, wallet1, wallet2)
 
-	payment1 := createRandomPayment(t, fromUser.ID, toUser.ID)
 	payment2, err := testQueries.GetPayment(context.Background(), payment1.ID)
-
 	require.NoError(t, err)
 	require.NotEmpty(t, payment2)
 
 	require.Equal(t, payment1.ID, payment2.ID)
-	require.Equal(t, payment1.FromUserID, payment2.FromUserID)
-	require.Equal(t, payment1.ToUserID, payment2.ToUserID)
+	require.Equal(t, payment1.FromWalletID, payment2.FromWalletID)
+	require.Equal(t, payment1.ToWalletID, payment2.ToWalletID)
 	require.Equal(t, payment1.Amount, payment2.Amount)
-	require.Equal(t, payment1.Status, payment2.Status)
-
 	require.WithinDuration(t, payment1.CreatedAt, payment2.CreatedAt, time.Second)
 }
 
 func TestListPayments(t *testing.T) {
-	fromUser := createRandomUser(t)
-	toUser := createRandomUser(t)
+	wallet1 := createRandomWallet(t)
+	wallet2 := createRandomWallet(t)
 
-	for i := 0; i < 10; i++ {
-		createRandomPayment(t, fromUser.ID, toUser.ID)
+	for i := 0; i < 5; i++ {
+		createRandomPayment(t, wallet1, wallet2)
+		createRandomPayment(t, wallet2, wallet1)
 	}
-
 	arg := ListPaymentsParams{
-		FromUserID: fromUser.ID,
-		Limit:      5,
-		Offset:     5,
+		FromWalletID: wallet1.ID,
+		ToWalletID:   wallet2.ID,
+		Limit:        5,
+		Offset:       0,
 	}
-
 	payments, err := testQueries.ListPayments(context.Background(), arg)
 	require.NoError(t, err)
 	require.Len(t, payments, 5)
 
 	for _, payment := range payments {
 		require.NotEmpty(t, payment)
-		require.Equal(t, fromUser.ID, payment.FromUserID)
+		require.Equal(t, arg.FromWalletID, payment.FromWalletID)
 		require.NotZero(t, payment.ID)
 		require.NotZero(t, payment.CreatedAt)
 	}
 }
 
 func TestCancelPayment(t *testing.T) {
-	fromUser := createRandomUser(t)
-	toUser := createRandomUser(t)
+	wallet1 := createRandomWallet(t)
+	wallet2 := createRandomWallet(t)
 
-	payment := createRandomPayment(t, fromUser.ID, toUser.ID)
+	payment := createRandomPayment(t, wallet1, wallet2)
 
 	cancelPayment, err := testQueries.CancelPayment(context.Background(), payment.ID)
 	require.NoError(t, err)

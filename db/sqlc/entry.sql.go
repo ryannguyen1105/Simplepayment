@@ -12,27 +12,23 @@ import (
 const createEntry = `-- name: CreateEntry :one
 INSERT INTO entries (
     wallet_id,
-    payment_id,
     amount
 ) VALUES (
-             $1, $2, $3
-         )
-    RETURNING id, wallet_id, payment_id, amount, created_at
+             $1, $2
+         ) RETURNING id, wallet_id, amount, created_at
 `
 
 type CreateEntryParams struct {
-	WalletID  int64 `json:"wallet_id"`
-	PaymentID int64 `json:"payment_id"`
-	Amount    int64 `json:"amount"`
+	WalletID int64 `json:"wallet_id"`
+	Amount   int64 `json:"amount"`
 }
 
 func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry, error) {
-	row := q.db.QueryRowContext(ctx, createEntry, arg.WalletID, arg.PaymentID, arg.Amount)
+	row := q.db.QueryRowContext(ctx, createEntry, arg.WalletID, arg.Amount)
 	var i Entry
 	err := row.Scan(
 		&i.ID,
 		&i.WalletID,
-		&i.PaymentID,
 		&i.Amount,
 		&i.CreatedAt,
 	)
@@ -40,8 +36,8 @@ func (q *Queries) CreateEntry(ctx context.Context, arg CreateEntryParams) (Entry
 }
 
 const getEntry = `-- name: GetEntry :one
-SELECT id, wallet_id, payment_id, amount, created_at FROM entries
-WHERE id = $1
+SELECT id, wallet_id, amount, created_at FROM entries
+WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetEntry(ctx context.Context, id int64) (Entry, error) {
@@ -50,7 +46,6 @@ func (q *Queries) GetEntry(ctx context.Context, id int64) (Entry, error) {
 	err := row.Scan(
 		&i.ID,
 		&i.WalletID,
-		&i.PaymentID,
 		&i.Amount,
 		&i.CreatedAt,
 	)
@@ -58,9 +53,9 @@ func (q *Queries) GetEntry(ctx context.Context, id int64) (Entry, error) {
 }
 
 const listEntries = `-- name: ListEntries :many
-SELECT id, wallet_id, payment_id, amount, created_at FROM entries
+SELECT id, wallet_id, amount, created_at FROM entries
 WHERE wallet_id = $1
-ORDER BY id DESC
+ORDER BY id
 LIMIT $2
 OFFSET $3
 `
@@ -83,7 +78,6 @@ func (q *Queries) ListEntries(ctx context.Context, arg ListEntriesParams) ([]Ent
 		if err := rows.Scan(
 			&i.ID,
 			&i.WalletID,
-			&i.PaymentID,
 			&i.Amount,
 			&i.CreatedAt,
 		); err != nil {

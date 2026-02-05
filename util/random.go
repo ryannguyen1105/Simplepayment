@@ -57,3 +57,13 @@ func RandomPassword() string {
 func RandomMoney() int64 {
 	return RandomInt(0, 1000)
 }
+
+func RandomOwner() string {
+	return RandomAlphabet(5)
+}
+
+func RandomStatus() string {
+	ranStatus := []string{"pending", "completed", "failed"}
+	n := len(ranStatus)
+	return ranStatus[rand.Intn(n)]
+}

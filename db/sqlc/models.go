@@ -9,18 +9,17 @@ import (
 )
 
 type Entry struct {
-	ID        int64 `json:"id"`
-	WalletID  int64 `json:"wallet_id"`
-	PaymentID int64 `json:"payment_id"`
+	ID       int64 `json:"id"`
+	WalletID int64 `json:"wallet_id"`
 	// +credit / -debit
 	Amount    int64     `json:"amount"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
 type Payment struct {
-	ID         int64 `json:"id"`
-	FromUserID int64 `json:"from_user_id"`
-	ToUserID   int64 `json:"to_user_id"`
+	ID           int64 `json:"id"`
+	FromWalletID int64 `json:"from_wallet_id"`
+	ToWalletID   int64 `json:"to_wallet_id"`
 	// must be > 0
 	Amount int64 `json:"amount"`
 	// pending | completed | failed
@@ -28,18 +27,10 @@ type Payment struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type User struct {
-	ID             int64     `json:"id"`
-	Email          string    `json:"email"`
-	Username       string    `json:"username"`
-	HashedPassword string    `json:"hashed_password"`
-	CreatedAt      time.Time `json:"created_at"`
-}
-
 type Wallet struct {
-	ID     int64 `json:"id"`
-	UserID int64 `json:"user_id"`
-	// must be >= 0
+	ID        int64     `json:"id"`
+	Owner     string    `json:"owner"`
 	Balance   int64     `json:"balance"`
+	Currency  string    `json:"currency"`
 	CreatedAt time.Time `json:"created_at"`
 }

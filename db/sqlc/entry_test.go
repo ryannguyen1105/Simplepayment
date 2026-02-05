@@ -9,66 +9,46 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createRandomEntry(t *testing.T, walletID int64, paymentID int64) Entry {
-	t.Helper()
-
+func createRandomEntry(t *testing.T, wallet Wallet) Entry {
 	arg := CreateEntryParams{
-		WalletID:  walletID,
-		PaymentID: paymentID, // 2. Sử dụng ID vừa tạo
-		Amount:    util.RandomMoney(),
+		WalletID: wallet.ID,
+		Amount:   util.RandomMoney(),
 	}
 	entry, err := testQueries.CreateEntry(context.Background(), arg)
 	require.NoError(t, err)
 	require.NotEmpty(t, entry)
 
-	require.NotZero(t, entry.ID)
-	require.Equal(t, walletID, entry.WalletID)
-	require.Equal(t, paymentID, entry.PaymentID)
+	require.Equal(t, arg.WalletID, entry.WalletID)
 	require.Equal(t, arg.Amount, entry.Amount)
-	require.WithinDuration(t, time.Now(), entry.CreatedAt, time.Second)
+
+	require.NotZero(t, entry.ID)
+	require.NotZero(t, entry.CreatedAt)
 
 	return entry
 }
 
 func TestCreateEntry(t *testing.T) {
-	fromUser := createRandomUser(t)
-	toUser := createRandomUser(t)
-
-	wallet := createRandomWallet(t, fromUser.ID)
-	payment := createRandomPayment(t, fromUser.ID, toUser.ID)
-
-	createRandomEntry(t, wallet.ID, payment.ID)
+	wallet := createRandomWallet(t)
+	createRandomEntry(t, wallet)
 }
 
 func TestGetEntry(t *testing.T) {
-	fromUser := createRandomUser(t)
-	toUser := createRandomUser(t)
-
-	wallet := createRandomWallet(t, fromUser.ID)
-	payment := createRandomPayment(t, fromUser.ID, toUser.ID)
-
-	entry1 := createRandomEntry(t, wallet.ID, payment.ID)
+	wallet := createRandomWallet(t)
+	entry1 := createRandomEntry(t, wallet)
 	entry2, err := testQueries.GetEntry(context.Background(), entry1.ID)
 	require.NoError(t, err)
 	require.NotEmpty(t, entry2)
 
 	require.Equal(t, entry1.ID, entry2.ID)
-	require.Equal(t, entry1.WalletID, wallet.ID)
-	require.Equal(t, entry1.PaymentID, payment.ID)
+	require.Equal(t, entry1.WalletID, entry2.WalletID)
 	require.Equal(t, entry1.Amount, entry2.Amount)
-
-	require.WithinDuration(t, time.Now(), entry1.CreatedAt, time.Second)
+	require.WithinDuration(t, entry1.CreatedAt, entry2.CreatedAt, time.Second)
 }
 
 func TestListEntries(t *testing.T) {
-	fromUser := createRandomUser(t)
-	toUser := createRandomUser(t)
-
-	wallet := createRandomWallet(t, fromUser.ID)
-	payment := createRandomPayment(t, fromUser.ID, toUser.ID)
-
+	wallet := createRandomWallet(t)
 	for i := 0; i < 10; i++ {
-		createRandomEntry(t, wallet.ID, payment.ID)
+		createRandomEntry(t, wallet)
 	}
 
 	arg := ListEntriesParams{
@@ -82,9 +62,6 @@ func TestListEntries(t *testing.T) {
 
 	for _, entry := range entries {
 		require.NotEmpty(t, entry)
-		require.Equal(t, wallet.ID, entry.WalletID)
-		require.Equal(t, payment.ID, entry.PaymentID)
-		require.NotZero(t, entry.ID)
-		require.NotZero(t, entry.CreatedAt)
+		require.Equal(t, arg.WalletID, entry.WalletID)
 	}
 }

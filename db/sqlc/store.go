@@ -27,7 +27,7 @@ func (store *Store) execTx(ctx context.Context, fn func(queries *Queries) error)
 	err = fn(q)
 	if err != nil {
 		if rbErr := tx.Rollback(); rbErr != nil {
-			return fmt.Errorf("tx err : %v, rb err: %v", err, rbErr)
+			return fmt.Errorf("tx err: %v, rollback: %v", err, rbErr)
 		}
 		return err
 	}
@@ -54,35 +54,24 @@ func (store *Store) PaymentTx(ctx context.Context, arg PaymentTxParams) (Payment
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
 
-		fromWallet, err := q.GetWalletByID(ctx, arg.FromWalletID)
-		if err != nil {
-			return err
-		}
-		toWallet, err := q.GetWalletByID(ctx, arg.ToWalletID)
-		if err != nil {
-			return err
-		}
-
 		result.Payment, err = q.CreatePayment(ctx, CreatePaymentParams{
-			FromUserID: fromWallet.UserID,
-			ToUserID:   toWallet.UserID,
-			Amount:     arg.Amount,
+			FromWalletID: arg.FromWalletID,
+			ToWalletID:   arg.ToWalletID,
+			Amount:       arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
 		result.FromEntry, err = q.CreateEntry(ctx, CreateEntryParams{
-			WalletID:  arg.FromWalletID,
-			PaymentID: result.Payment.ID,
-			Amount:    -arg.Amount,
+			WalletID: arg.FromWalletID,
+			Amount:   -arg.Amount,
 		})
 		if err != nil {
 			return err
 		}
 		result.ToEntry, err = q.CreateEntry(ctx, CreateEntryParams{
-			WalletID:  arg.ToWalletID,
-			PaymentID: result.Payment.ID,
-			Amount:    arg.Amount,
+			WalletID: arg.ToWalletID,
+			Amount:   arg.Amount,
 		})
 		if err != nil {
 			return err
@@ -92,9 +81,7 @@ func (store *Store) PaymentTx(ctx context.Context, arg PaymentTxParams) (Payment
 			result.FromWallet, result.ToWallet, err = addMoney(ctx, q, arg.FromWalletID, -arg.Amount, arg.ToWalletID, arg.Amount)
 		} else {
 			result.ToWallet, result.FromWallet, err = addMoney(ctx, q, arg.ToWalletID, arg.Amount, arg.FromWalletID, -arg.Amount)
-
 		}
-
 		return nil
 	})
 	return result, err

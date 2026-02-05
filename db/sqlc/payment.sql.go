@@ -14,7 +14,7 @@ UPDATE payments
 SET status = 'canceled'
 WHERE id = $1
     AND status = 'pending'
-    RETURNING id, from_user_id, to_user_id, amount, status, created_at
+    RETURNING id, from_wallet_id, to_wallet_id, amount, status, created_at
 `
 
 func (q *Queries) CancelPayment(ctx context.Context, id int64) (Payment, error) {
@@ -22,8 +22,8 @@ func (q *Queries) CancelPayment(ctx context.Context, id int64) (Payment, error) 
 	var i Payment
 	err := row.Scan(
 		&i.ID,
-		&i.FromUserID,
-		&i.ToUserID,
+		&i.FromWalletID,
+		&i.ToWalletID,
 		&i.Amount,
 		&i.Status,
 		&i.CreatedAt,
@@ -33,29 +33,35 @@ func (q *Queries) CancelPayment(ctx context.Context, id int64) (Payment, error) 
 
 const createPayment = `-- name: CreatePayment :one
 INSERT INTO payments (
-    from_user_id,
-    to_user_id,
+    from_wallet_id,
+    to_wallet_id,
     amount,
     status
 ) VALUES (
-             $1, $2, $3, 'pending'
+             $1, $2, $3, $4
          )
-    RETURNING id, from_user_id, to_user_id, amount, status, created_at
+    RETURNING id, from_wallet_id, to_wallet_id, amount, status, created_at
 `
 
 type CreatePaymentParams struct {
-	FromUserID int64 `json:"from_user_id"`
-	ToUserID   int64 `json:"to_user_id"`
-	Amount     int64 `json:"amount"`
+	FromWalletID int64  `json:"from_wallet_id"`
+	ToWalletID   int64  `json:"to_wallet_id"`
+	Amount       int64  `json:"amount"`
+	Status       string `json:"status"`
 }
 
 func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (Payment, error) {
-	row := q.db.QueryRowContext(ctx, createPayment, arg.FromUserID, arg.ToUserID, arg.Amount)
+	row := q.db.QueryRowContext(ctx, createPayment,
+		arg.FromWalletID,
+		arg.ToWalletID,
+		arg.Amount,
+		arg.Status,
+	)
 	var i Payment
 	err := row.Scan(
 		&i.ID,
-		&i.FromUserID,
-		&i.ToUserID,
+		&i.FromWalletID,
+		&i.ToWalletID,
 		&i.Amount,
 		&i.Status,
 		&i.CreatedAt,
@@ -64,8 +70,8 @@ func (q *Queries) CreatePayment(ctx context.Context, arg CreatePaymentParams) (P
 }
 
 const getPayment = `-- name: GetPayment :one
-SELECT id, from_user_id, to_user_id, amount, status, created_at FROM payments
-WHERE id = $1
+SELECT id, from_wallet_id, to_wallet_id, amount, status, created_at FROM payments
+WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetPayment(ctx context.Context, id int64) (Payment, error) {
@@ -73,8 +79,8 @@ func (q *Queries) GetPayment(ctx context.Context, id int64) (Payment, error) {
 	var i Payment
 	err := row.Scan(
 		&i.ID,
-		&i.FromUserID,
-		&i.ToUserID,
+		&i.FromWalletID,
+		&i.ToWalletID,
 		&i.Amount,
 		&i.Status,
 		&i.CreatedAt,
@@ -83,22 +89,28 @@ func (q *Queries) GetPayment(ctx context.Context, id int64) (Payment, error) {
 }
 
 const listPayments = `-- name: ListPayments :many
-SELECT id, from_user_id, to_user_id, amount, status, created_at FROM payments
-WHERE from_user_id = $1 OR
-      to_user_id = $1
+SELECT id, from_wallet_id, to_wallet_id, amount, status, created_at FROM payments
+WHERE from_wallet_id = $1 OR
+      to_wallet_id = $2
 ORDER BY id
-LIMIT $2
-OFFSET $3
+LIMIT $3
+OFFSET $4
 `
 
 type ListPaymentsParams struct {
-	FromUserID int64 `json:"from_user_id"`
-	Limit      int32 `json:"limit"`
-	Offset     int32 `json:"offset"`
+	FromWalletID int64 `json:"from_wallet_id"`
+	ToWalletID   int64 `json:"to_wallet_id"`
+	Limit        int32 `json:"limit"`
+	Offset       int32 `json:"offset"`
 }
 
 func (q *Queries) ListPayments(ctx context.Context, arg ListPaymentsParams) ([]Payment, error) {
-	rows, err := q.db.QueryContext(ctx, listPayments, arg.FromUserID, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listPayments,
+		arg.FromWalletID,
+		arg.ToWalletID,
+		arg.Limit,
+		arg.Offset,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +120,8 @@ func (q *Queries) ListPayments(ctx context.Context, arg ListPaymentsParams) ([]P
 		var i Payment
 		if err := rows.Scan(
 			&i.ID,
-			&i.FromUserID,
-			&i.ToUserID,
+			&i.FromWalletID,
+			&i.ToWalletID,
 			&i.Amount,
 			&i.Status,
 			&i.CreatedAt,
