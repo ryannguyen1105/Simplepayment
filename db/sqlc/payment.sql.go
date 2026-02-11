@@ -13,8 +13,7 @@ const cancelPayment = `-- name: CancelPayment :one
 UPDATE payments
 SET status = 'canceled'
 WHERE id = $1
-    AND status = 'pending'
-    RETURNING id, from_wallet_id, to_wallet_id, amount, status, created_at
+RETURNING id, from_wallet_id, to_wallet_id, amount, status, created_at
 `
 
 func (q *Queries) CancelPayment(ctx context.Context, id int64) (Payment, error) {

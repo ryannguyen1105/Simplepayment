@@ -25,8 +25,7 @@ OFFSET $4;
 UPDATE payments
 SET status = 'canceled'
 WHERE id = $1
-    AND status = 'pending'
-    RETURNING *;
+RETURNING *;
 
 
 
