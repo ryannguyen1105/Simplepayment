@@ -114,16 +114,20 @@ func TestCreateWalletApi(t *testing.T) {
 
 	testCases := []struct {
 		name          string
-		walletID      int64
+		body          map[string]interface{}
 		buildStubs    func(store *mockdb.MockStore)
 		checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder)
 	}{
 		{
-			name:     "OK",
-			walletID: wallet.ID,
+			name: "OK",
+			body: map[string]interface{}{
+				"owner":    wallet.Owner,
+				"balance":  wallet.Balance,
+				"currency": wallet.Currency,
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
-					CreateWallet(gomock.Any(), gomock.Eq(wallet.ID)).
+					CreateWallet(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(wallet, nil)
 			},
@@ -133,8 +137,10 @@ func TestCreateWalletApi(t *testing.T) {
 			},
 		},
 		{
-			name:     "InvalidInput",
-			walletID: 0,
+			name: "InvalidInput",
+			body: map[string]interface{}{
+				"owner": "",
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
 					CreateWallet(gomock.Any(), gomock.Any()).
@@ -145,11 +151,15 @@ func TestCreateWalletApi(t *testing.T) {
 			},
 		},
 		{
-			name:     "Internal Error",
-			walletID: wallet.ID,
+			name: "InternalError",
+			body: map[string]interface{}{
+				"owner":    wallet.Owner,
+				"balance":  wallet.Balance,
+				"currency": wallet.Currency,
+			},
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
-					CreateWallet(gomock.Any(), gomock.Eq(wallet.ID)).
+					CreateWallet(gomock.Any(), gomock.Any()).
 					Times(1).
 					Return(db.Wallet{}, sql.ErrConnDone)
 			},
@@ -171,8 +181,9 @@ func TestCreateWalletApi(t *testing.T) {
 			server := NewServer(store)
 			recoder := httptest.NewRecorder()
 
-			url := fmt.Sprintf("/wallets/%d", tc.walletID)
-			request, err := http.NewRequest(http.MethodPost, url, nil)
+			url := "/wallets"
+			data, _ := json.Marshal(tc.body)
+			request, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(data))
 			require.NoError(t, err)
 
 			server.router.ServeHTTP(recoder, request)
