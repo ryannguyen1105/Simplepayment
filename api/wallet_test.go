@@ -41,7 +41,7 @@ func TestGetWalletApi(t *testing.T) {
 			},
 		},
 		{
-			name:     "NOT FOUND",
+			name:     "NotFound",
 			walletID: wallet.ID,
 			buildStubs: func(store *mockdb.MockStore) {
 				store.EXPECT().
@@ -106,6 +106,78 @@ func TestGetWalletApi(t *testing.T) {
 			tc.checkResponse(t, recoder)
 		})
 
+	}
+}
+
+func TestCreateWalletApi(t *testing.T) {
+	wallet := randomWallet()
+
+	testCases := []struct {
+		name          string
+		walletID      int64
+		buildStubs    func(store *mockdb.MockStore)
+		checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder)
+	}{
+		{
+			name:     "OK",
+			walletID: wallet.ID,
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreateWallet(gomock.Any(), gomock.Eq(wallet.ID)).
+					Times(1).
+					Return(wallet, nil)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recoder.Code)
+				requireBodyMatchAccount(t, recoder.Body, wallet)
+			},
+		},
+		{
+			name:     "InvalidInput",
+			walletID: 0,
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreateWallet(gomock.Any(), gomock.Any()).
+					Times(0)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recoder.Code)
+			},
+		},
+		{
+			name:     "Internal Error",
+			walletID: wallet.ID,
+			buildStubs: func(store *mockdb.MockStore) {
+				store.EXPECT().
+					CreateWallet(gomock.Any(), gomock.Eq(wallet.ID)).
+					Times(1).
+					Return(db.Wallet{}, sql.ErrConnDone)
+			},
+			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recoder.Code)
+			},
+		},
+	}
+	for i := range testCases {
+		tc := testCases[i]
+		t.Run(tc.name, func(t *testing.T) {
+
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+
+			store := mockdb.NewMockStore(ctrl)
+			tc.buildStubs(store)
+
+			server := NewServer(store)
+			recoder := httptest.NewRecorder()
+
+			url := fmt.Sprintf("/wallets/%d", tc.walletID)
+			request, err := http.NewRequest(http.MethodPost, url, nil)
+			require.NoError(t, err)
+
+			server.router.ServeHTTP(recoder, request)
+			tc.checkResponse(t, recoder)
+		})
 	}
 }
 
