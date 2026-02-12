@@ -19,6 +19,7 @@ func NewServer(store db.Store) *Server {
 	router.GET("/wallets", server.listWallet)
 	router.PATCH("/wallets/:id", server.updateWallet)
 	router.DELETE("/wallets/:id", server.deleteWallet)
+	router.POST("/payments", server.createPayment)
 
 	server.router = router
 	return server
