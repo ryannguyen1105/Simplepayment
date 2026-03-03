@@ -1,21 +1,41 @@
 package api
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	db "github.com/ryannguyen1105/Simplepayment/db/sqlc"
+	"github.com/ryannguyen1105/Simplepayment/token"
+	"github.com/ryannguyen1105/Simplepayment/util"
 )
 
 type Server struct {
-	store  db.Store
-	router *gin.Engine
+	config     util.Config
+	store      db.Store
+	tokenMaker token.Maker
+	router     *gin.Engine
 }
 
-func NewServer(store db.Store) *Server {
-	server := &Server{store: store}
+func NewServer(config util.Config, store db.Store) (*Server, error) {
+	tokenMaker, err := token.NewJWTMaker(config.TokenSymmetricKey)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create token maker: %w", err)
+	}
+	server := &Server{
+		config:     config,
+		store:      store,
+		tokenMaker: tokenMaker,
+	}
+	server.setupRouter()
+	return server, nil
+}
+
+func (server *Server) setupRouter() {
 	router := gin.Default()
 
 	router.POST("/users", server.createUser)
-	
+	router.POST("/users/login", server.loginUser)
+
 	router.POST("/wallets", server.createWallet)
 	router.GET("/wallets/:id", server.getWallet)
 	router.GET("/wallets", server.listWallet)
@@ -24,7 +44,7 @@ func NewServer(store db.Store) *Server {
 	router.POST("/payments", server.createPayment)
 
 	server.router = router
-	return server
+
 }
 
 func (server *Server) Start(address string) error {

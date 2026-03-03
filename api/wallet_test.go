@@ -93,7 +93,7 @@ func TestGetWalletApi(t *testing.T) {
 			//	Times(1).
 			//	Return(wallet, nil)
 
-			server := NewServer(store)
+			server := NewTestServer(t, store)
 			recoder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/wallets/%d", tc.walletID)
@@ -178,7 +178,7 @@ func TestCreateWalletApi(t *testing.T) {
 			store := mockdb.NewMockStore(ctrl)
 			tc.buildStubs(store)
 
-			server := NewServer(store)
+			server := NewTestServer(t, store)
 			recoder := httptest.NewRecorder()
 
 			url := "/wallets"
