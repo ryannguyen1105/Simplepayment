@@ -111,18 +111,20 @@ func (q *Queries) GetWalletForUpdate(ctx context.Context, id int64) (Wallet, err
 
 const listWallets = `-- name: ListWallets :many
 SELECT id, owner, balance, currency, created_at FROM wallets
+WHERE owner = $1
 ORDER BY id
-LIMIT $1
-OFFSET $2
+LIMIT $2
+OFFSET $3
 `
 
 type ListWalletsParams struct {
-	Limit  int32 `json:"limit"`
-	Offset int32 `json:"offset"`
+	Owner  string `json:"owner"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
 }
 
 func (q *Queries) ListWallets(ctx context.Context, arg ListWalletsParams) ([]Wallet, error) {
-	rows, err := q.db.QueryContext(ctx, listWallets, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listWallets, arg.Owner, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

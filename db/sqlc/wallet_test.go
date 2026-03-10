@@ -80,19 +80,22 @@ func TestDeleteWallet(t *testing.T) {
 }
 
 func TestListWallets(t *testing.T) {
+	var lastWallet Wallet
 	for i := 0; i < 10; i++ {
-		createRandomWallet(t)
+		lastWallet = createRandomWallet(t)
 	}
 
 	arg := ListWalletsParams{
+		Owner:  lastWallet.Owner,
 		Limit:  5,
-		Offset: 5,
+		Offset: 0,
 	}
 	wallets, err := testQueries.ListWallets(context.Background(), arg)
 	require.NoError(t, err)
-	require.Len(t, wallets, 5)
+	require.NotEmpty(t, wallets)
 
 	for _, wallet := range wallets {
 		require.NotEmpty(t, wallet)
+		require.Equal(t, lastWallet.Owner, wallet.Owner)
 	}
 }
