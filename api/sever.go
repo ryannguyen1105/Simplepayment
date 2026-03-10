@@ -17,7 +17,7 @@ type Server struct {
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
-	tokenMaker, err := token.NewJWTMaker(config.TokenSymmetricKey)
+	tokenMaker, err := token.NewPasetoMaker(config.TokenSymmetricKey)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create token maker: %w", err)
 	}
@@ -36,12 +36,14 @@ func (server *Server) setupRouter() {
 	router.POST("/users", server.createUser)
 	router.POST("/users/login", server.loginUser)
 
-	router.POST("/wallets", server.createWallet)
-	router.GET("/wallets/:id", server.getWallet)
-	router.GET("/wallets", server.listWallet)
-	router.PATCH("/wallets/:id", server.updateWallet)
-	router.DELETE("/wallets/:id", server.deleteWallet)
-	router.POST("/payments", server.createPayment)
+	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+
+	authRoutes.POST("/wallets", server.createWallet)
+	authRoutes.GET("/wallets/:id", server.getWallet)
+	authRoutes.GET("/wallets", server.listWallet)
+	authRoutes.PATCH("/wallets/:id", server.updateWallet)
+	authRoutes.DELETE("/wallets/:id", server.deleteWallet)
+	authRoutes.POST("/payments", server.createPayment)
 
 	server.router = router
 

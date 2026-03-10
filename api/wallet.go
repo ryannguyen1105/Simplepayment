@@ -8,10 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/lib/pq"
 	db "github.com/ryannguyen1105/Simplepayment/db/sqlc"
+	"github.com/ryannguyen1105/Simplepayment/token"
 )
 
 type createWalletRequest struct {
-	Owner    string `json:"owner" binding:"required" `
+	//Owner    string `json:"owner" binding:"required" `
 	Currency string `json:"currency" binding:"required" `
 }
 
@@ -37,8 +38,9 @@ func (server *Server) createWallet(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	arg := db.CreateWalletParams{
-		Owner:    req.Owner,
+		Owner:    authPayload.Username,
 		Currency: req.Currency,
 		Balance:  0,
 	}
@@ -63,7 +65,7 @@ func (server *Server) getWallet(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
-	wallets, err := server.store.GetWallet(ctx, req.ID)
+	wallet, err := server.store.GetWallet(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -72,7 +74,12 @@ func (server *Server) getWallet(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	ctx.JSON(http.StatusOK, wallets)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if wallet.Owner != authPayload.Username {
+		err := errors.New("wallet doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
+	}
+	ctx.JSON(http.StatusOK, wallet)
 }
 
 func (server *Server) listWallet(ctx *gin.Context) {
@@ -81,7 +88,9 @@ func (server *Server) listWallet(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
 	arg := db.ListWalletsParams{
+		Owner:  authPayload.Username,
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
 	}
@@ -117,6 +126,11 @@ func (server *Server) updateWallet(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if wallets.Owner != authPayload.Username {
+		err := errors.New("wallet doesn't belong to the authenticated user")
+		ctx.JSON(http.StatusNotFound, errorResponse(err))
+	}
 	ctx.JSON(http.StatusOK, wallets)
 }
 
@@ -140,5 +154,6 @@ func (server *Server) deleteWallet(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+
 	ctx.Status(http.StatusNoContent)
 }
