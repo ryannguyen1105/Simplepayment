@@ -1,5 +1,5 @@
 postgres:
-	docker run --name postgres18 -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=Fq9zkLWA2ZBAhq -d postgres:18
+	docker run --name postgres18 --network payment-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=Fq9zkLWA2ZBAhq -d postgres:18
 
 createdb:
 	docker exec -it postgres18 createdb --username=root --owner=root simple_payment
