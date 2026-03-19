@@ -74,6 +74,12 @@ git clone https://github.com/ryannguyen1105/Simplepayment
 cd Simplepayment
 ```
 
+### Run with Docker Compose
+
+```
+docker-compose up --build
+```
+
 ## Run the server
 ```bash
 go run main.go
