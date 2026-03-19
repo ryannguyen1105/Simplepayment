@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+       POSTGRES_USER: root
+       POSTGRES_PASSWORD: Fq9zkLWA2ZBAhq
+       POSTGRES_DB: simple_payment
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+        - "8080:8080"
+    environment:
+      - DB_SOURCE=postgresql://root:Fq9zkLWA2ZBAhq@postgres:5432/simple_payment?sslmode=disable
+    depends_on:
+      - postgres
+    entrypoint:
+      [ "./wait-for.sh", "postgres:5432", "--", "./start.sh"]
+    command: [ "/app/main" ]
+
