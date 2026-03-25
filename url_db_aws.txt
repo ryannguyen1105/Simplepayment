@@ -1,0 +1,1 @@
+//postgresql://root:rVDhJkjuFqInVrPwowNt@simple-payment-application.c7qkie6cc4z0.ap-southeast-1.rds.amazonaws.com:5432/simple_payment_application
