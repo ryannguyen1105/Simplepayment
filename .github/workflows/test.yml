@@ -2,9 +2,9 @@ name: Run unit tests
 
 on:
   push:
-    branches: [ main,feature/deleteUser ]
+    branches: '**'
   pull_request:
-    branches: [ main, feature/deleteUser ]
+    branches: '**'
 
 jobs:
 
