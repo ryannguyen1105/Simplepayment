@@ -30,7 +30,7 @@ func (server *Server) createPayment(ctx *gin.Context) {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
 			return
-		}
+		} 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
