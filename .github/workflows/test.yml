@@ -51,8 +51,8 @@ jobs:
       - name: Run migrations
         run: make migrateup
 
-      - name: Generate Mocks
-      - run: make mock
+#      - name: Generate Mocks
+#      - run: make mock
 
       - name: Test
         run: make test
