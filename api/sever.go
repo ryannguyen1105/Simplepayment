@@ -38,6 +38,7 @@ func (server *Server) setupRouter() {
 
 	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
 
+	router.DELETE("/users/delete", server.deleteUser)
 	authRoutes.POST("/wallets", server.createWallet)
 	authRoutes.GET("/wallets/:id", server.getWallet)
 	authRoutes.GET("/wallets", server.listWallet)

@@ -29,7 +29,7 @@ func TestGetWalletAPI(t *testing.T) {
 		walletID      int64
 		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore)
-		checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name:     "OK",
@@ -43,9 +43,9 @@ func TestGetWalletAPI(t *testing.T) {
 					Times(1).
 					Return(wallet, nil)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusOK, recoder.Code)
-				requireBodyMatchWallet(t, recoder.Body, wallet)
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+				requireBodyMatchWallet(t, recorder.Body, wallet)
 			},
 		},
 		{
@@ -60,8 +60,8 @@ func TestGetWalletAPI(t *testing.T) {
 					Times(1).
 					Return(wallet, nil)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusNotFound, recoder.Code)
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
 			},
 		},
 		{
@@ -74,8 +74,8 @@ func TestGetWalletAPI(t *testing.T) {
 					GetWallet(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusUnauthorized, recoder.Code)
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 		{
@@ -90,8 +90,8 @@ func TestGetWalletAPI(t *testing.T) {
 					Times(1).
 					Return(db.Wallet{}, sql.ErrNoRows)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusNotFound, recoder.Code)
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusNotFound, recorder.Code)
 			},
 		},
 		{
@@ -106,8 +106,8 @@ func TestGetWalletAPI(t *testing.T) {
 					Times(1).
 					Return(db.Wallet{}, sql.ErrConnDone)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusInternalServerError, recoder.Code)
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
 		{
@@ -141,17 +141,17 @@ func TestGetWalletAPI(t *testing.T) {
 			//	Return(wallet, nil)
 
 			server := NewTestServer(t, store)
-			recoder := httptest.NewRecorder()
+			recorder := httptest.NewRecorder()
 
 			url := fmt.Sprintf("/wallets/%d", tc.walletID)
 			request, err := http.NewRequest(http.MethodGet, url, nil)
 			require.NoError(t, err)
 
 			tc.setupAuth(t, request, server.tokenMaker)
-			server.router.ServeHTTP(recoder, request)
-			//require.Equal(t, http.StatusOK, recoder.Code)
-			//requireBodyMatchAccount(t, recoder.Body, wallet)
-			tc.checkResponse(t, recoder)
+			server.router.ServeHTTP(recorder, request)
+			//require.Equal(t, http.StatusOK, recorder.Code)
+			//requireBodyMatchAccount(t, recorder.Body, wallet)
+			tc.checkResponse(t, recorder)
 		})
 
 	}
@@ -166,7 +166,7 @@ func TestCreateWalletAPI(t *testing.T) {
 		body          gin.H
 		setupAuth     func(t *testing.T, request *http.Request, tokenMaker token.Maker)
 		buildStubs    func(store *mockdb.MockStore)
-		checkResponse func(t *testing.T, recoder *httptest.ResponseRecorder)
+		checkResponse func(t *testing.T, recorder *httptest.ResponseRecorder)
 	}{
 		{
 			name: "OK",
@@ -184,9 +184,9 @@ func TestCreateWalletAPI(t *testing.T) {
 				}
 				store.EXPECT().CreateWallet(gomock.Any(), gomock.Eq(arg)).Times(1).Return(wallet, nil)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusOK, recoder.Code)
-				requireBodyMatchWallet(t, recoder.Body, wallet)
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusOK, recorder.Code)
+				requireBodyMatchWallet(t, recorder.Body, wallet)
 			},
 		},
 		{
@@ -201,8 +201,8 @@ func TestCreateWalletAPI(t *testing.T) {
 					GetWallet(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusUnauthorized, recoder.Code)
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusUnauthorized, recorder.Code)
 			},
 		},
 		{
@@ -218,8 +218,8 @@ func TestCreateWalletAPI(t *testing.T) {
 					CreateWallet(gomock.Any(), gomock.Any()).
 					Times(0)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusBadRequest, recoder.Code)
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusBadRequest, recorder.Code)
 			},
 		},
 		{
@@ -238,8 +238,8 @@ func TestCreateWalletAPI(t *testing.T) {
 					Times(1).
 					Return(db.Wallet{}, sql.ErrConnDone)
 			},
-			checkResponse: func(t *testing.T, recoder *httptest.ResponseRecorder) {
-				require.Equal(t, http.StatusInternalServerError, recoder.Code)
+			checkResponse: func(t *testing.T, recorder *httptest.ResponseRecorder) {
+				require.Equal(t, http.StatusInternalServerError, recorder.Code)
 			},
 		},
 	}
@@ -254,7 +254,7 @@ func TestCreateWalletAPI(t *testing.T) {
 			tc.buildStubs(store)
 
 			server := NewTestServer(t, store)
-			recoder := httptest.NewRecorder()
+			recorder := httptest.NewRecorder()
 
 			url := "/wallets"
 			data, _ := json.Marshal(tc.body)
@@ -262,8 +262,8 @@ func TestCreateWalletAPI(t *testing.T) {
 			require.NoError(t, err)
 
 			tc.setupAuth(t, request, server.tokenMaker)
-			server.router.ServeHTTP(recoder, request)
-			tc.checkResponse(t, recoder)
+			server.router.ServeHTTP(recorder, request)
+			tc.checkResponse(t, recorder)
 		})
 	}
 }
