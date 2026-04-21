@@ -1,4 +1,4 @@
-DB_URL := "postgresql://root:Fq9zkLWA2ZBAhq@localhost:5432/simple_payment?sslmode=disable"
+DB_SOURCE ?= "postgresql://root:Fq9zkLWA2ZBAhq@localhost:5432/simple_payment?sslmode=disable"
 
 postgres:
 	docker run --name postgres18 --network payment-network -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=Fq9zkLWA2ZBAhq -d postgres:18
@@ -10,7 +10,7 @@ dropdb:
 	docker exec -it postgres18 dropdb simple_payment
 
 migrateup:
-	migrate -path db/migration -database $(DB_URL) -verbose up
+	migrate -path db/migration -database $(DB_SOURCE) -verbose up
 
 migrateup1:
 	migrate -path db/migration -database $(DB_URL) -verbose up 1
