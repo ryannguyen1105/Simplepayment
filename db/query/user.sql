@@ -11,8 +11,9 @@ INSERT INTO users (
 
 -- name: GetUser :one
 SELECT * FROM users
-WHERE username = $1 LIMIT 1;
+WHERE username = $1 AND deleted = false LIMIT 1;
 
 -- name: DeleteUser :exec
-DELETE FROM users
+UPDATE users
+SET deleted = true
 WHERE username = $1;

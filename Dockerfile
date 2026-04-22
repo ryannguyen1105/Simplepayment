@@ -11,13 +11,10 @@ FROM alpine:3.23
 WORKDIR /app
 COPY --from=builder /app/main .
 COPY --from=builder /app/migrate ./migrate
-#COPY app.env .
+COPY app.env .
 COPY start.sh .
 COPY wait-for.sh .
 COPY db/migration ./migration
-
-RUN apk add --no-cache dos2unix
-RUN dos2unix start.sh && chmod +x start.sh
 
 EXPOSE 8080
 CMD [ "/app/main" ]
