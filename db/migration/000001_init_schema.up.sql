@@ -38,8 +38,8 @@ COMMENT ON COLUMN "payments"."amount" IS 'must be > 0';
 
 COMMENT ON COLUMN "payments"."status" IS 'pending | completed | failed';
 
-ALTER TABLE "entries" ADD FOREIGN KEY ("wallet_id") REFERENCES "wallets" ("id");
+ALTER TABLE "entries" ADD FOREIGN KEY ("wallet_id") REFERENCES "wallets" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "payments" ADD FOREIGN KEY ("from_wallet_id") REFERENCES "wallets" ("id");
+ALTER TABLE "payments" ADD FOREIGN KEY ("from_wallet_id") REFERENCES "wallets" ("id") ON DELETE CASCADE;
 
-ALTER TABLE "payments" ADD FOREIGN KEY ("to_wallet_id") REFERENCES "wallets" ("id");
+ALTER TABLE "payments" ADD FOREIGN KEY ("to_wallet_id") REFERENCES "wallets" ("id") ON DELETE CASCADE;
