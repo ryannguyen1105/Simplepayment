@@ -16,4 +16,4 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Configure Render credentials
-        run: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: echo ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
