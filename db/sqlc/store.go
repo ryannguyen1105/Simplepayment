@@ -80,13 +80,12 @@ func (store *SQLStore) PaymentTx(ctx context.Context, arg PaymentTxParams) (Paym
 		if err != nil {
 			return err
 		}
-
 		if arg.FromWalletID < arg.ToWalletID {
 			result.FromWallet, result.ToWallet, err = addMoney(ctx, q, arg.FromWalletID, -arg.Amount, arg.ToWalletID, arg.Amount)
 		} else {
 			result.ToWallet, result.FromWallet, err = addMoney(ctx, q, arg.ToWalletID, arg.Amount, arg.FromWalletID, -arg.Amount)
 		}
-		return nil
+		return err
 	})
 	return result, err
 }
@@ -104,11 +103,20 @@ func addMoney(
 		Amount: amount1,
 	})
 	if err != nil {
-		return
+		if err == sql.ErrNoRows {
+			return wallet1, wallet2, fmt.Errorf("Transaction failed: wallet has id %d does not have sufficient balance.", walletID1)
+		}
+		return wallet1, wallet2, err
 	}
 	wallet2, err = q.AddWalletBalance(ctx, AddWalletBalanceParams{
 		ID:     walletID2,
 		Amount: amount2,
 	})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return wallet1, wallet2, fmt.Errorf("Transaction failed: wallet has id %d does not have sufficient balance.", walletID2)
+		}
+		return wallet1, wallet2, err
+	}
 	return
 }

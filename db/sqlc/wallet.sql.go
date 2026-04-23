@@ -13,6 +13,7 @@ const addWalletBalance = `-- name: AddWalletBalance :one
 UPDATE wallets
 SET balance = balance + $1
 WHERE id = $2
+    AND ($1 >= 0 OR balance + $1 >= 0)
     RETURNING id, owner, balance, currency, created_at
 `
 
