@@ -32,6 +32,7 @@ WHERE id = $1
 UPDATE wallets
 SET balance = balance + sqlc.arg(amount)
 WHERE id = sqlc.arg(id)
+    AND (sqlc.arg(amount) >= 0 OR balance + sqlc.arg(amount) >= 0)
     RETURNING *;
 
 -- name: DeleteWallet :exec
