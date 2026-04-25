@@ -135,17 +135,27 @@ func (server *Server) updateWallet(ctx *gin.Context) {
 }
 
 func (server *Server) deleteWallet(ctx *gin.Context) {
-	var uriReq getWalletRequest
-	if err := ctx.ShouldBindUri(&uriReq); err != nil {
+	var req getWalletRequest
+	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
-	var req deleteWalletRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+	wallet, err := server.store.GetWallet(ctx, req.ID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-	err := server.store.DeleteWallet(ctx, req.ID)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+	if wallet.Owner != authPayload.Username {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("wallet doesn't belong to the authenticated user")))
+		return
+	}
+
+	err = server.store.DeleteWallet(ctx, req.ID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ctx.JSON(http.StatusNotFound, errorResponse(err))
@@ -155,5 +165,5 @@ func (server *Server) deleteWallet(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Status(http.StatusNoContent)
+	ctx.Status(http.StatusOK)
 }
