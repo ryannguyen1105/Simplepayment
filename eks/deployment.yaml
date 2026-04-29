@@ -19,7 +19,7 @@ spec: # specification of the deployment
           image:  ghcr.io/ryannguyen1105/simplepayment-api:latest  
           ports:
             - containerPort: 8080
-          # imagePullPolicy: IfNotPresent
+          imagePullPolicy: IfNotPresent
           env:
           - name: DB_DRIVER
             value: "postgres"
@@ -38,6 +38,9 @@ spec: # specification of the deployment
               secretKeyRef: 
                 name: simplepayment-secret-key
                 key:  TOKEN_KEY
+
+          - name: ACCESS_TOKEN_DURATION
+            value: 15m
 
       imagePullSecrets: 
         - name: ghcr-pull-secret
