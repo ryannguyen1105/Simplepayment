@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: simple-payment-api-deployment
+  labels:
+    app: simple-payment-api
+spec: # specification of the deployment
+  selector:
+    matchLabels:
+      app: simple-payment-api
+  replicas: 1 # here we will have 5 pods running
+  template:
+    metadata:
+      labels:
+        app: simple-payment-api
+    spec: # specification for the pod
+      containers:
+        - name: simple-payment-api
+          image:  ghcr.io/ryannguyen1105/simplepayment-api:latest  
+          ports:
+            - containerPort: 8080
+          # imagePullPolicy: IfNotPresent
+          env:
+          - name: DB_DRIVER
+            value: "postgres"
+
+          - name: DB_SOURCE
+            valueFrom:
+              secretKeyRef:
+                name: simplepayment-secret
+                key: DB_URL
+
+          - name: SERVER_ADDRESS
+            value:  "0.0.0.0:8080"
+
+          - name: TOKEN_SYMMETRIC_KEY
+            valueFrom:
+              secretKeyRef: 
+                name: simplepayment-secret-key
+                key:  TOKEN_KEY
+
+      imagePullSecrets: 
+        - name: ghcr-pull-secret
+  
