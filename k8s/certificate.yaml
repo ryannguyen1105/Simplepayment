@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: simple-payment-api-cert
+  namespace: default
+spec:
+  issuerRef:
+    name: letsencrypt
+    kind: ClusterIssuer
+    group: cert-manager.io
+  dnsNames:
+    - simple-payment-application.onrender.com
+  secretName: simple-payment-api-cert
