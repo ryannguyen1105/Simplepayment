@@ -3,13 +3,20 @@ kind: Gateway
 metadata:
   name: simple-payment-gateway
   namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
 spec:
   gatewayClassName: simple-payment-gateway-class
   listeners:
   - name: http
-    protocol: HTTP
-    port: 80
+    protocol: HTTPS
+    port: 443
     hostname: "simple-payment-application.onrender.com"
     allowedRoutes:
       namespaces:
         from: Same
+    tls:
+        mode: Terminate
+        certificateRefs:
+          - name: simple-payment-api-cert
+    
