@@ -16,7 +16,7 @@ spec: # specification of the deployment
     spec: # specification for the pod
       containers:
         - name: simple-payment-api
-          image:  ghcr.io/ryannguyen1105/simplepayment-api:latest  
+          image: tainguyen2812/simple-payment-api:latest 
           ports:
             - containerPort: 8080
           imagePullPolicy: Always
