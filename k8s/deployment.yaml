@@ -19,7 +19,7 @@ spec: # specification of the deployment
           image:  ghcr.io/ryannguyen1105/simplepayment-api:latest  
           ports:
             - containerPort: 8080
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
           - name: DB_DRIVER
             value: "postgres"
