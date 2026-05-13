@@ -30,14 +30,3 @@ jobs:
 
       - name: Configure Render credentials
         run: curl -f -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-
-      - name: Deploy image to K8s
-        run: |
-          kubectl apply -f k8s/deployment.yaml
-          kubectl apply -f k8s/service.yaml 
-          kubectl apply -f k8s/issuers.yaml 
-          kubectl apply -f k8s/gateway-class.yaml 
-          kubectl apply -f k8s/gateway.yaml 
-          kubectl apply -f k8s/httproute.yaml 
-          kubectl apply -f k8s/metallb-pool.yaml 
-          kubectl apply -f k8s/certificate.yaml  
