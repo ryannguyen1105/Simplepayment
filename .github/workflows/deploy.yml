@@ -26,7 +26,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: tainguyen2812/simple-payment-backend:latest
+          tags: tainguyen2812/simple-payment-b:latest
 
       - name: Configure Render credentials
         run: curl -f -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
