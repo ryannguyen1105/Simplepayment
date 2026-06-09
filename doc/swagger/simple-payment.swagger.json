@@ -4,9 +4,7 @@
     "title": "Simple Payment API",
     "version": "1.0",
     "contact": {
-      "name": "Ryan Nguyen",
-      "url": "https://github.com/ryannguyen1105",
-      "email": "nguyenthanhtai112005@gmail.com"
+      "name": "Ryan Nguyen"
     }
   },
   "tags": [
@@ -96,7 +94,7 @@
         "password": {
           "type": "string"
         },
-        "fullname": {
+        "fullName": {
           "type": "string"
         },
         "email": {

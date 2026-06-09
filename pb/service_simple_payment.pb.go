@@ -30,9 +30,9 @@ const file_service_simple_payment_proto_rawDesc = "" +
 	"\rSimplePayment\x12W\n" +
 	"\n" +
 	"CreateUser\x12\x15.pb.CreateUserRequest\x1a\x16.pb.CreateUserResponse\"\x1a\x82\xd3\xe4\x93\x02\x14:\x01*\"\x0f/v1/create_user\x12S\n" +
-	"\tLoginUser\x12\x14.pb.LoginUserRequest\x1a\x15.pb.LoginUserResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/login_userB\x9c\x01\x92Am\x12k\n" +
-	"\x12Simple Payment API\"P\n" +
-	"\vRyan Nguyen\x12!https://github.com/ryannguyen1105\x1a\x1enguyenthanhtai112005@gmail.com2\x031.0Z*github.com/ryannguyen1105/Simplepayment/pbb\x06proto3"
+	"\tLoginUser\x12\x14.pb.LoginUserRequest\x1a\x15.pb.LoginUserResponse\"\x19\x82\xd3\xe4\x93\x02\x13:\x01*\"\x0e/v1/login_userBY\x92A*\x12(\n" +
+	"\x12Simple Payment API\"\r\n" +
+	"\vRyan Nguyen2\x031.0Z*github.com/ryannguyen1105/Simplepayment/pbb\x06proto3"
 
 var file_service_simple_payment_proto_goTypes = []any{
 	(*CreateUserRequest)(nil),  // 0: pb.CreateUserRequest
