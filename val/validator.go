@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"net/mail"
 	"regexp"
+	"unicode/utf8"
 )
 
 var (
-	isValidUsername = regexp.MustCompile(`^[a-z0-9_]+$`).MatchString
-	isValidFullname = regexp.MustCompile(`^[a-zA-Z\\s]+$`).MatchString
+	isValidUsername = regexp.MustCompile(`^[a-zA-Z0-9._]+$`).MatchString
+	isValidFullname = regexp.MustCompile(`^[\p{L}\s.\-]+$`).MatchString
 )
 
-
 func ValidateString(value string, minLength int, maxLength int) error {
-	n := len(value)
+	n := utf8.RuneCountInString(value)
 	if n < minLength || n > maxLength {
 		return fmt.Errorf("must contain from %d-%d characters", minLength, maxLength)
 	}
@@ -22,7 +22,7 @@ func ValidateString(value string, minLength int, maxLength int) error {
 
 func ValidateUsername(value string) error {
 	if err := ValidateString(value, 3, 100); err != nil {
-		return err 
+		return err
 	}
 	if !isValidUsername(value) {
 		return fmt.Errorf("must contain only lowercase letters, digits, or underscore")
