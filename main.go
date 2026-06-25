@@ -7,9 +7,6 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/golang-migrate/migrate/v4"
-	 _ "github.com/golang-migrate/migrate/v4/source/file"
-	 _ "github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	_ "github.com/lib/pq"
 	"github.com/ryannguyen1105/Simplepayment/api"
@@ -18,7 +15,7 @@ import (
 	"github.com/ryannguyen1105/Simplepayment/pb"
 	"github.com/ryannguyen1105/Simplepayment/util"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection" 
+	"google.golang.org/grpc/reflection"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -37,25 +34,10 @@ func main() {
 	if err != nil {
 		log.Fatal("cannot connect to database:", err)
 	}
-
-	runDBMigration(config.MigrationURL, config.DBSource)
-
 	store := db.NewStore(conn)
 	// runGinServer(config, store)
 	go runGatewayServer(config, store)
 	runGrpcServer(config, store)
-}
-
-func runDBMigration(migrationURL string, dbSource string) {
-	migration, err := migrate.New(migrationURL, dbSource)
-	if err != nil {
-		log.Fatal("cannot create new migrate instance:", err)
-	}
-
-	if err = migration.Up(); err != nil && err != migrate.ErrNoChange {
-		log.Fatal("failed to run migrate up:", err)
-	}
-	 log.Println("db migrated successfully")
 }
 
 func runGrpcServer(config util.Config, store db.Store) {
